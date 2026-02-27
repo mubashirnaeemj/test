@@ -40,8 +40,8 @@ pipeline {
 
                     // Send diff JSON to FastAPI backend
                     sh """
-                    curl -X POST http://127.0.0.1:8000/jenkins/diff \\
-                         -H 'Content-Type: application/json' \\
+                    curl -X POST https://aisha-unemissive-participantly.ngrok-free.dev/jenkins/diff \
+                         -H "Content-Type: application/json" \
                          -d '{ "commit_id": "${commitId}", "diff": "${diffContent}" }'
                     """
                 }
