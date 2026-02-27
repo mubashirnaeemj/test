@@ -17,14 +17,10 @@ pipeline {
         stage('Generate Diff') {
             steps {
                 script {
-                    // Get previous commit
                     def prevCommit = sh(script: "git rev-parse HEAD~1", returnStdout: true).trim()
                     echo "Previous commit: ${prevCommit}"
 
-                    // Generate diff file
                     sh "git --no-pager diff ${prevCommit} HEAD > changes.diff"
-
-                    // Print diff in Jenkins console
                     sh "cat changes.diff"
                 }
             }
@@ -40,10 +36,11 @@ pipeline {
             steps {
                 script {
                     def commitId = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-                    def diffContent = sh(script: "cat changes.diff | sed 's/\"/\\\\\"/g'", returnStdout: true).trim()
+                    def diffContent = sh(script: "cat changes.diff | sed 's/\"/\\\\\"/g' | sed ':a;N;\$!ba;s/\\n/\\\\n/g'", returnStdout: true).trim()
 
+                    // Send diff JSON to FastAPI backend
                     sh """
-                    curl -X POST http://127.0.0.1:8000/commits/ \\
+                    curl -X POST http://127.0.0.1:8000/jenkins/diff \\
                          -H 'Content-Type: application/json' \\
                          -d '{ "commit_id": "${commitId}", "diff": "${diffContent}" }'
                     """
